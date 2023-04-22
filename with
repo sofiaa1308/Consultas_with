@@ -1,0 +1,18 @@
+select count(distinct id_de_reserva), count(distinct id_venta)  from
+(
+with ventas as (
+select * from (	
+		select to_date(fecha_alta,'DD/MM/YYYY') as fecha_alta_v,
+		split_part(id_de_oportunidad,'/',7) as id_opp_v,* 
+		from playground.mv_core_erp_sales_nc
+		where country_iso='PE' and motivo_baja='' or motivo_baja='Devolución')
+	where fecha_alta_v>='2023-04-01')
+select * from
+		(select * from (	
+		select to_date(fecha_alta,'DD/MM/YYYY') as fecha_alta_b,
+		split_part(id_de_oportunidad,'/',7) as id_opp_b, *
+		from playground.mv_core_erp_bookings_nc
+		where country_iso ='PE' and motivo_de_baja <>'Duplicado' and motivo_de_baja<>'Datos incorrectos')
+	where fecha_alta_b>='2023-02-01') bookings
+left join ventas on ventas.id_reserva=bookings.id_de_reserva)
+where fecha_alta_b>='2023-04-01';
